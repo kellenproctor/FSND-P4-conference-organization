@@ -36,6 +36,8 @@ from models import ConferenceForms
 from models import ConferenceQueryForm
 from models import ConferenceQueryForms
 from models import TeeShirtSize
+from models import Session
+from models import SessionForm
 
 from settings import WEB_CLIENT_ID
 from settings import ANDROID_CLIENT_ID
@@ -326,6 +328,44 @@ class ConferenceApi(remote.Service):
                 items=[self._copyConferenceToForm(conf, names[conf.organizerUserId]) for conf in \
                 conferences]
         )
+
+
+# - - - Session objects - - - - - - - - - - - - - - - - - - -
+
+    @endpoints.method(message_types.VoidMessage, SessionForm,
+            path='getConferenceSessions',
+            http_method='GET',
+            name='getProfile')
+    def getProfile(self, request):
+        """Return user profile."""
+        pass
+
+
+    @endpoints.method(ProfileMiniForm, ProfileForm,
+            path='getConferenceSessionsByType',
+            http_method='POST',
+            name='saveProfile')
+    def saveProfile(self, request):
+        """Update & return user profile."""
+        pass
+
+
+    @endpoints.method(ProfileMiniForm, ProfileForm,
+            path='getSessionsBySpeaker',
+            http_method='POST',
+            name='saveProfile')
+    def saveProfile(self, request):
+        """Update & return user profile."""
+        pass
+
+
+    @endpoints.method(ProfileMiniForm, ProfileForm,
+            path='createSession',
+            http_method='POST',
+            name='saveProfile')
+    def saveProfile(self, request):
+        """Update & return user profile."""
+        pass
 
 
 # - - - Profile objects - - - - - - - - - - - - - - - - - - -
