@@ -461,73 +461,62 @@ class ConferenceApi(remote.Service):
 
         # copy SessionForm/ProtoRPC Message into dict
         data = {field.name: getattr(request, field.name) for field in request.all_fields()}
-        del data['websafeKey']
-        del data['organizerDisplayName']
 
-        # convert dates from strings to Date objects; set month based on start_date
-        if data['startDate']:
-            data['startDate'] = datetime.strptime(data['startDate'][:10], "%Y-%m-%d").date()
-            data['month'] = data['startDate'].month
-        else:
-            data['month'] = 0
-        if data['endDate']:
-            data['endDate'] = datetime.strptime(data['endDate'][:10], "%Y-%m-%d").date()
+        # convert dates from strings to Date objects;
+        if data['date']:
+            data['date'] = datetime.strptime(data['date'][:10], "%Y-%m-%d").date()
 
-        # set seatsAvailable to be same as maxAttendees on creation
-        if data["maxAttendees"] > 0:
-            data["seatsAvailable"] = data["maxAttendees"]
-        # generate Profile Key based on user ID and Session
-        # ID based on Profile key get Session key from ID
-        p_key = ndb.Key(Profile, user_id)
-        c_id = Session.allocate_ids(size=1, parent=p_key)[0]
-        c_key = ndb.Key(Session, c_id, parent=p_key)
-        data['key'] = c_key
-        data['organizerUserId'] = request.organizerUserId = user_id
+        # convert times from strings to Time objects
+        if data['startTime']:
+            pass #add relevant data here
+
+        # generate Conference Key based on conference and Session
+        # ID based on Conference key get Session key from ID
+        conf_key = ndb.Key(urlsafe=request.websafeConferenceKey)
+        sesh_id = Session.allocate_ids(size=1, parent=conf_key)[0]
+        sesh_key = ndb.Key(Session, sesh_id, parent=conf_key)
+        data['key'] = sesh_key
 
         # create Session, send email to organizer confirming
         # creation of Session & return (modified) SessionForm
         Session(**data).put()
-        taskqueue.add(params={'email': user.email(),
-            'conferenceInfo': repr(request)},
-            url='/tasks/send_confirmation_email'
-        )
         return request
 
 
-    @endpoints.method(message_types.VoidMessage, SessionForm,
-            path='getConferenceSessions',
-            http_method='GET',
-            name='getConferenceSessions')
-    def getConferenceSessions(self, request):
-        """Return user profile."""
-        pass
+#    @endpoints.method(message_types.VoidMessage, SessionForm,
+#            path='getConferenceSessions',
+#            http_method='GET',
+#            name='getConferenceSessions')
+#    def getConferenceSessions(self, request):
+#        """Return user profile."""
+#        pass
+#
+#
+#    @endpoints.method(message_types.VoidMessage, SessionForm,
+#            path='getConferenceSessionsByType',
+#            http_method='POST',
+#            name='getConferenceSessionsByType')
+#    def getConferenceSessionsByType(self, request):
+#        """Update & return user profile."""
+#        pass
+#
+#
+#    @endpoints.method(message_types.VoidMessage, SessionForm,
+#            path='getSessionsBySpeaker',
+#            http_method='POST',
+#            name='getSessionsBySpeaker')
+#    def getSessionsBySpeaker(self, request):
+#        """Update & return user profile."""
+#        pass
+#
 
-
-    @endpoints.method(message_types.VoidMessage, SessionForm,
-            path='getConferenceSessionsByType',
-            http_method='POST',
-            name='getConferenceSessionsByType')
-    def getConferenceSessionsByType(self, request):
-        """Update & return user profile."""
-        pass
-
-
-    @endpoints.method(message_types.VoidMessage, SessionForm,
-            path='getSessionsBySpeaker',
-            http_method='POST',
-            name='getSessionsBySpeaker')
-    def getSessionsBySpeaker(self, request):
-        """Update & return user profile."""
-        pass
-
-
-    @endpoints.method(message_types.VoidMessage, SessionForm,
-            path='createSession',
+    @endpoints.method(SessionForm, SessionForm,
+            path='conference/{websafeConferenceKey}/createSession',
             http_method='POST',
             name='createSession')
     def createSession(self, request):
         """Update & return user profile."""
-        pass
+        return self._createSessionObject(request)
 
 
 
