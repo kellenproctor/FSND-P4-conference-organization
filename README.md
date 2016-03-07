@@ -7,6 +7,12 @@ Project 4 additions by Kellen Proctor on 3 March 2016
 ####INTRODUCTION:
 Conference Central contains a first stab at a fully functional full-stack python web app! Let's hope it works! Written using Python and the Google App Engine, and based off of the excellent class taught by Magnus and Karl (super thumbs up!!), we're looking to exceed expectations.
 
+###Task 1 Design Choices
+Session, SessionForm, and SessionForms are implemented in models.py as a simple copy of Conference and ConferenceForms. I decided to keep speaker as a string for the sake of simplicity. I may go back to implement speaker as a distinct entity with a "speakerSessions" property. With this, it should be simple to query Speaker for all sessions at which that Speaker is attending. Further, a speaker could also have a user_id, to help a user manage his/her speaking obligations.
+
+For the session methods, I decided to use querystrings instead of path arguments for the parameters. I think this makes the API calls a bit more elegant, and also simplifies the path.
+
+
 ####FILES:
 database_setup.py - brief description
 
