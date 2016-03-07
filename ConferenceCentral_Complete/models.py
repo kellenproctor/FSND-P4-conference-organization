@@ -92,6 +92,7 @@ class Session(ndb.model):
 
 class SessionForm(messages.Message):
     """SessionForm -- Session outbound form message"""
+    # need entity information??
     name            = messages.StringField(1)
     highlights      = messages.StringField(2)
     speaker         = messages.StringField(3)
@@ -99,6 +100,10 @@ class SessionForm(messages.Message):
     typeOfSession   = messages.StringField(5)
     date            = messages.StringField(6)
     startTime       = messages.StringField(7)
+
+class SessionForms(messages.Message):
+    """SessionForms -- multiple Session outbord form message"""
+    items = messages.MessageField(SessionForm, 1, repeated=True)
 
 class TeeShirtSize(messages.Enum):
     """TeeShirtSize -- t-shirt size enumeration value"""

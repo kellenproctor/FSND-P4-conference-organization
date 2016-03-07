@@ -431,38 +431,101 @@ class ConferenceApi(remote.Service):
 
 
 
+    def _copySessionToForm(self, sesh):
+        """Copy relevant fields from Session to SessionForm."""
+        # copy relevant fields from Session to SessionForm
+        ss = SessionForm()
+        for field in ss.all_fields():
+            if hasattr(sesh, field.name):
+                # convert Date/Time to date/time string; just copy others
+                if field.name.endswith('date'):
+                    setattr(ss, field.name, str(getattr(sesh, field.name)))
+                elif field.name.endswith('Time'):
+                    setattr(ss, field.name, str(getattr(sesh, field.name)))
+                else:
+                    setattr(ss, field.name, getattr(sesh, field.name))
+        ss.check_initialized()
+        return ss
+
+
+    def _createSessionObject(self, request):
+        """Create or update Session object, returning SessionForm/request."""
+        # preload necessary data items
+        user = endpoints.get_current_user()
+        if not user:
+            raise endpoints.UnauthorizedException('Authorization required')
+        user_id = getUserId(user)
+
+        if not request.name:
+            raise endpoints.BadRequestException("Session 'name' field required")
+
+        # copy SessionForm/ProtoRPC Message into dict
+        data = {field.name: getattr(request, field.name) for field in request.all_fields()}
+        del data['websafeKey']
+        del data['organizerDisplayName']
+
+        # convert dates from strings to Date objects; set month based on start_date
+        if data['startDate']:
+            data['startDate'] = datetime.strptime(data['startDate'][:10], "%Y-%m-%d").date()
+            data['month'] = data['startDate'].month
+        else:
+            data['month'] = 0
+        if data['endDate']:
+            data['endDate'] = datetime.strptime(data['endDate'][:10], "%Y-%m-%d").date()
+
+        # set seatsAvailable to be same as maxAttendees on creation
+        if data["maxAttendees"] > 0:
+            data["seatsAvailable"] = data["maxAttendees"]
+        # generate Profile Key based on user ID and Session
+        # ID based on Profile key get Session key from ID
+        p_key = ndb.Key(Profile, user_id)
+        c_id = Session.allocate_ids(size=1, parent=p_key)[0]
+        c_key = ndb.Key(Session, c_id, parent=p_key)
+        data['key'] = c_key
+        data['organizerUserId'] = request.organizerUserId = user_id
+
+        # create Session, send email to organizer confirming
+        # creation of Session & return (modified) SessionForm
+        Session(**data).put()
+        taskqueue.add(params={'email': user.email(),
+            'conferenceInfo': repr(request)},
+            url='/tasks/send_confirmation_email'
+        )
+        return request
+
+
     @endpoints.method(message_types.VoidMessage, SessionForm,
             path='getConferenceSessions',
             http_method='GET',
-            name='getProfile')
-    def getProfile(self, request):
+            name='getConferenceSessions')
+    def getConferenceSessions(self, request):
         """Return user profile."""
         pass
 
 
-    @endpoints.method(ProfileMiniForm, ProfileForm,
+    @endpoints.method(message_types.VoidMessage, SessionForm,
             path='getConferenceSessionsByType',
             http_method='POST',
-            name='saveProfile')
-    def saveProfile(self, request):
+            name='getConferenceSessionsByType')
+    def getConferenceSessionsByType(self, request):
         """Update & return user profile."""
         pass
 
 
-    @endpoints.method(ProfileMiniForm, ProfileForm,
+    @endpoints.method(message_types.VoidMessage, SessionForm,
             path='getSessionsBySpeaker',
             http_method='POST',
-            name='saveProfile')
-    def saveProfile(self, request):
+            name='getSessionsBySpeaker')
+    def getSessionsBySpeaker(self, request):
         """Update & return user profile."""
         pass
 
 
-    @endpoints.method(ProfileMiniForm, ProfileForm,
+    @endpoints.method(message_types.VoidMessage, SessionForm,
             path='createSession',
             http_method='POST',
-            name='saveProfile')
-    def saveProfile(self, request):
+            name='createSession')
+    def createSession(self, request):
         """Update & return user profile."""
         pass
 
