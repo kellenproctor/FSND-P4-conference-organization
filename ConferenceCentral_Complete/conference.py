@@ -91,12 +91,12 @@ CONF_POST_REQUEST = endpoints.ResourceContainer(
 )
 
 SESH_GET_REQUEST = endpoints.ResourceContainer(
-    SessionForm,
+    message_types.VoidMessage,
     websafeConferenceKey=messages.StringField(1),
 )
 
 SESH_GET_TYPE_REQUEST = endpoints.ResourceContainer(
-    SessionForm,
+    message_types.VoidMessage,
     websafeConferenceKey=messages.StringField(1),
     typeOfSession=messages.StringField(2),
 )
@@ -104,6 +104,11 @@ SESH_GET_TYPE_REQUEST = endpoints.ResourceContainer(
 SESH_POST_REQUEST = endpoints.ResourceContainer(
     SessionForm,
     websafeConferenceKey=messages.StringField(1),
+)
+
+SESH_SPEAKER_REQUEST = endpoints.ResourceContainer(
+    message_types.VoidMessage,
+    speaker=messages.StringField(1),
 )
 
 
@@ -507,7 +512,7 @@ class ConferenceApi(remote.Service):
         return self._copySessionToForm(sesh)
 
     @endpoints.method(SESH_POST_REQUEST, SessionForm,
-            path='conference/{websafeConferenceKey}/createSession',
+            path='createSession',
             http_method='POST',
             name='createSession')
     def createSession(self, request):
@@ -516,46 +521,54 @@ class ConferenceApi(remote.Service):
 
 
     @endpoints.method(SESH_GET_REQUEST, SessionForms,
-            path='conference/{websafeConferenceKey}/getConferenceSessions',
+            path='getConferenceSessions',
             http_method='GET',
             name='getConferenceSessions')
     def getConferenceSessions(self, request):
         """Given a conference, return all sessions."""
-        # create ancestor query for all key matches for this conference
+        # create ancestor query for all sessions for this conference
         conf_key = ndb.Key(urlsafe=request.websafeConferenceKey)
         seshs = Session.query(ancestor=conf_key)
 
-        # return set of ConferenceForm objects per Conference
+        # return set of SessionForm objects per Session
         return SessionForms(
             items=[self._copySessionToForm(sesh) for sesh in seshs]
         )
 
 
     @endpoints.method(SESH_GET_TYPE_REQUEST, SessionForms,
-            path='conference/{websafeConferenceKey}/getConferenceSessionsByType/{typeOfSession}',
+            path='getConferenceSessionsByType',
             http_method='GET',
             name='getConferenceSessionsByType')
     def getConferenceSessionsByType(self, request):
         """Given a conference, return all sessions of a specified type."""
-        # create ancestor query for all key matches for this conference
+        # create ancestor query for sessions for this conference
         conf_key = ndb.Key(urlsafe=request.websafeConferenceKey)
         seshs = Session.query(ancestor=conf_key)
+
+        # filter sessions for type of session
         seshs = seshs.filter(Session.typeOfSession==request.typeOfSession)
 
-        # return set of ConferenceForm objects per Conference
+        # return set of SessionForm objects per Session
         return SessionForms(
             items=[self._copySessionToForm(sesh) for sesh in seshs]
         )
 
 
-#    @endpoints.method(message_types.VoidMessage, SessionForm,
-#            path='getSessionsBySpeaker',
-#            http_method='POST',
-#            name='getSessionsBySpeaker')
-#    def getSessionsBySpeaker(self, request):
-#        """Update & return user profile."""
-#        pass
-#
+    @endpoints.method(SESH_SPEAKER_REQUEST, SessionForms,
+            path='getSessionsBySpeaker',
+            http_method='GET',
+            name='getSessionsBySpeaker')
+    def getSessionsBySpeaker(self, request):
+        """Given a speaker, return all sessions given by this speaker, across all conferences."""
+        seshs = Session.query()
+        seshs = seshs.filter(Session.speaker==request.speaker)
+
+        # return set of SessionForm objects per Session
+        return SessionForms(
+            items=[self._copySessionToForm(sesh) for sesh in seshs]
+        )
+
 
 
 
