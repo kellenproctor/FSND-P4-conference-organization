@@ -80,7 +80,7 @@ class ConferenceForms(messages.Message):
     """ConferenceForms -- multiple Conference outbound form message"""
     items = messages.MessageField(ConferenceForm, 1, repeated=True)
 
-class Session(ndb.model):
+class Session(ndb.Model):
     """Session -- Session object"""
     name            = ndb.StringProperty(required=True)
     highlights      = ndb.StringProperty()

@@ -89,6 +89,16 @@ CONF_POST_REQUEST = endpoints.ResourceContainer(
     websafeConferenceKey=messages.StringField(1),
 )
 
+SESH_GET_REQUEST = endpoints.ResourceContainer(
+    SessionForm,
+    websafeConferenceKey=messages.StringField(1),
+)
+
+SESH_POST_REQUEST = endpoints.ResourceContainer(
+    SessionForm,
+    websafeConferenceKey=messages.StringField(1),
+)
+
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -456,11 +466,18 @@ class ConferenceApi(remote.Service):
             raise endpoints.UnauthorizedException('Authorization required')
         user_id = getUserId(user)
 
+        # check that user is conference organizer
+        conf = ndb.Key(urlsafe=request.websafeConferenceKey).get()
+        if user_id != conf.organizerUserId:
+            raise endpoints.ForbiddenException(
+                'Only the conference organizer can create sessions')
+
         if not request.name:
             raise endpoints.BadRequestException("Session 'name' field required")
 
         # copy SessionForm/ProtoRPC Message into dict
         data = {field.name: getattr(request, field.name) for field in request.all_fields()}
+        del data['websafeConferenceKey']
 
         # convert dates from strings to Date objects;
         if data['date']:
@@ -477,21 +494,29 @@ class ConferenceApi(remote.Service):
         sesh_key = ndb.Key(Session, sesh_id, parent=conf_key)
         data['key'] = sesh_key
 
-        # create Session, send email to organizer confirming
-        # creation of Session & return (modified) SessionForm
-        Session(**data).put()
-        return request
+        # create Session, send email to organizer confirming??
+        # creation of Session & return (modified) SessionForm??
+        sesh = Session(**data).put()
+        return self._copySessionToForm(sesh)
+
+    @endpoints.method(SESH_POST_REQUEST, SessionForm,
+            path='conference/{websafeConferenceKey}/createSession',
+            http_method='POST',
+            name='createSession')
+    def createSession(self, request):
+        """Create new session."""
+        return self._createSessionObject(request)
 
 
-#    @endpoints.method(message_types.VoidMessage, SessionForm,
-#            path='getConferenceSessions',
-#            http_method='GET',
-#            name='getConferenceSessions')
-#    def getConferenceSessions(self, request):
-#        """Return user profile."""
-#        pass
-#
-#
+    @endpoints.method(SESH_GET_REQUEST, SessionForm,
+            path='conference/{websafeConferenceKey}/getConferenceSessions',
+            http_method='GET',
+            name='getConferenceSessions')
+    def getConferenceSessions(self, request):
+        """Return all sessions in a given conference."""
+        pass
+
+
 #    @endpoints.method(message_types.VoidMessage, SessionForm,
 #            path='getConferenceSessionsByType',
 #            http_method='POST',
@@ -510,13 +535,6 @@ class ConferenceApi(remote.Service):
 #        pass
 #
 
-    @endpoints.method(SessionForm, SessionForm,
-            path='conference/{websafeConferenceKey}/createSession',
-            http_method='POST',
-            name='createSession')
-    def createSession(self, request):
-        """Update & return user profile."""
-        return self._createSessionObject(request)
 
 
 
