@@ -111,6 +111,11 @@ SESH_SPEAKER_REQUEST = endpoints.ResourceContainer(
     speaker=messages.StringField(1),
 )
 
+SESH_WISHLIST_REQUEST = endpoints.ResourceContainer(
+    message_types.VoidMessage,
+    sessionKey=messages.StringField(1),
+)
+
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -570,6 +575,53 @@ class ConferenceApi(remote.Service):
         )
 
 
+
+
+# - - - SESSION WISHLIST - - - - - - - - - - - - - - - - - -
+
+
+
+
+    @ndb.transactional(xg=True)
+    def _sessionWishlist(self, request, reg=True):
+        """Add or remove a session to a user's wishlist."""
+        retval = None
+        prof = self._getProfileFromUser() # get user Profile
+
+        # check if sesh exists given sessionKey
+        # get session; check that it exists
+        sesh_key = request.sessionKey
+        sesh = ndb.Key(urlsafe=sesh_key).get()
+        if not sesh:
+            raise endpoints.NotFoundException(
+                'No session found with key: %s' % sesh_key)
+
+        # register
+        if reg:
+            # check if user already has session in wishlist otherwise add
+            if sesh_key in prof.sessionKeysWishlist:
+                raise ConflictException(
+                    "You have already added this session to your wishlist")
+
+            # register user, take away one seat
+            prof.sessionKeysWishlist.append(sesh_key)
+            retval = True
+
+        # unregister
+        else:
+            # check if user already registered
+            if sesh_key in prof.sessionKeysWishlist:
+
+                # unregister user, add back one seat
+                prof.sessionKeysWishlist.remove(sesh_key)
+                retval = True
+            else:
+                retval = False
+
+        # write things back to the datastore & return
+        prof.put()
+        conf.put()
+        return BooleanMessage(data=retval)
 
 
 
