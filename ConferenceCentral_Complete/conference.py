@@ -624,6 +624,36 @@ class ConferenceApi(remote.Service):
         return BooleanMessage(data=retval)
 
 
+    @endpoints.method(message_types.VoidMessage, SessionForms,
+            path='sessionWishlist',
+            http_method='GET', name='getSessionsInWishlist')
+    def getSessionsInWishlist(self, request):
+        """Query for all the sessions in a conference that the user is interested in."""
+        prof = self._getProfileFromUser() # get user Profile
+        sesh_keys = [ndb.Key(urlsafe=sesh_key) for sesh_key in prof.sessionKeysWishlist]
+        sessions = ndb.get_multi(sesh_keys)
+
+        # return set of SessionForm objects per Session
+        return SessionForms(sesh=[self._copySessionToForm(sesh) for sesh in sessions]
+        )
+
+
+    @endpoints.method(SESH_WISHLIST_REQUEST, BooleanMessage,
+            path='sessionWishlist',
+            http_method='POST', name='addSessionToWishlist')
+    def addSessionToWishlist(self, request):
+        """Add the session to the user's wishlist."""
+        return self._sessionWishlist(request)
+
+
+    @endpoints.method(SESH_WISHLIST_REQUEST, BooleanMessage,
+            path='sessionWishlist',
+            http_method='DELETE', name='deleteSessionInWishlist')
+    def deleteSessionInWishlist(self, request):
+        """Remove the session from the user's wishlist."""
+        return self._sessionWishlist(request, reg=False)
+
+
 
 
 # - - - ANNOUNCEMENTS - - - - - - - - - - - - - - - - - - - -
