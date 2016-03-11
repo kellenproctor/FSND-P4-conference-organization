@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+#~/AppData/Local/Google/Chrome/Application/chrome.exe --user-data-dir=test --
+#unsafely-treat-insecure-origin-as-secure=http://localhost:8080
+
 """models.py
 
 Udacity conference server-side Python App Engine data & ProtoRPC models
@@ -35,6 +38,7 @@ class Profile(ndb.Model):
     mainEmail = ndb.StringProperty()
     teeShirtSize = ndb.StringProperty(default='NOT_SPECIFIED')
     conferenceKeysToAttend = ndb.StringProperty(repeated=True)
+    sessionKeysWishlist = ndb.StringProperty(repeated=True)
 
 class ProfileMiniForm(messages.Message):
     """ProfileMiniForm -- update Profile form message"""
@@ -47,6 +51,7 @@ class ProfileForm(messages.Message):
     mainEmail = messages.StringField(2)
     teeShirtSize = messages.EnumField('TeeShirtSize', 3)
     conferenceKeysToAttend = messages.StringField(4, repeated=True)
+    sessionKeysWishlist = messages.StringField(5, repeated=True)
 
 class Conference(ndb.Model):
     """Conference -- Conference object"""
