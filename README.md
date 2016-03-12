@@ -12,6 +12,20 @@ Session, SessionForm, and SessionForms are implemented in models.py as a simple 
 
 For the session methods, I decided to use querystrings instead of path arguments for the parameters. I think this makes the API calls a bit more elegant, and also simplifies the path.
 
+###Task 3: Come up with 2 additional queries
+1. It would be useful for a user attending a conference to see all the sessions they are interested in attending, sorted by start time. So essentially the user is querying Session for all sessions in a specific conferences entity group, then sorting for date and start time.
+
+Code:
+```
+#Store the conference key in a variable
+wsck = request.websafeConferenceKey
+
+#Query for sessions using the websafeConferenceKey as an ancestor
+seshs = Session.query(ancestor=ndb.Key(wsck))
+seshs.order(Session.date)
+seshs.order(Session.startTime)
+``` 
+
 
 ####FILES:
 database_setup.py - brief description
