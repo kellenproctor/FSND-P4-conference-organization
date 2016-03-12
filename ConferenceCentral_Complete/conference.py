@@ -52,6 +52,9 @@ API_EXPLORER_CLIENT_ID = endpoints.API_EXPLORER_CLIENT_ID
 MEMCACHE_ANNOUNCEMENTS_KEY = "RECENT_ANNOUNCEMENTS"
 ANNOUNCEMENT_TPL = ('Last chance to attend! The following conferences '
                     'are nearly sold out: %s')
+FEATURED_SPEAKER_TPL = ('%s, our Featured Speaker, can be seen '
+                        'at the following sessions: %s')
+MEMCACHE_FEATURED_SPEAKER_KEY = "FEATURED_SPEAKERS"
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -511,10 +514,19 @@ class ConferenceApi(remote.Service):
         sesh_key = ndb.Key(Session, sesh_id, parent=conf_key)
         data['key'] = sesh_key
 
-        # create Session, send email to organizer confirming??
+        # create Session, check for featured speaker
         # creation of Session & return (modified) SessionForm??
         sesh = Session(**data).put()
+
+        # add Featured Speaker if given
+        if data['speaker']:
+            taskqueue.add(
+                params={'speaker': data['speaker']},
+                url='/tasks/set_featured_speaker',
+                method = 'GET'
+            )
         return self._copySessionToForm(sesh)
+
 
     @endpoints.method(SESH_POST_REQUEST, SessionForm,
             path='createSession',
@@ -695,6 +707,41 @@ class ConferenceApi(remote.Service):
     def getAnnouncement(self, request):
         """Return Announcement from memcache."""
         return StringMessage(data=memcache.get(MEMCACHE_ANNOUNCEMENTS_KEY) or "")
+
+
+
+
+# - - - FEATURED SPEAKERS - - - - - - - - - - - - - - - - -
+
+
+
+
+    @staticmethod
+    def _cacheFeaturedSpeaker(speaker):
+        """Assign featured speakers to memcache."""
+        sessions = Session.query().filter(Session.speaker==speaker).fetch()
+
+        if sessions:
+            # If there are mulitple sessions for a speaker create a
+            # memcache entry with the featured speaker and session names
+            announcement = FEATURED_SPEAKER_TPL % (
+                speaker, ', '.join(sesh.name for sesh in sessions))
+            memcache.set(MEMCACHE_FEATURED_SPEAKER_KEY, announcement)
+        else:
+            # If there are no sold out conferences,
+            # delete the memcache announcements entry
+            announcement = ""
+            memcache.delete(MEMCACHE_FEATURED_SPEAKER_KEY)
+
+        return announcement
+
+    @endpoints.method(message_types.VoidMessage, StringMessage,
+            path='getFeaturedSpeaker',
+            http_method='GET',
+            name='getFeaturedSpeaker')
+    def getFeaturedSpeaker(self, request):
+        """Return the Featured Speakers for a Conference"""
+        return StringMessage(data=memcache.get(MEMCACHE_FEATURED_SPEAKER_KEY) or "")
 
 
 
