@@ -63,7 +63,7 @@ command:
 
 
 ```
-git clone https://github.com/kellenproctor/item-catalog.git item-catalog
+git clone https://github.com/kellenproctor/conference-organization.git conf_central
 ```
 
 
