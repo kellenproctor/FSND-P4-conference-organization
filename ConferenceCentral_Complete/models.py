@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-#~/AppData/Local/Google/Chrome/Application/chrome.exe --user-data-dir=test --
-#unsafely-treat-insecure-origin-as-secure=http://localhost:8080
-
 """models.py
 
 Udacity conference server-side Python App Engine data & ProtoRPC models
