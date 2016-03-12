@@ -603,7 +603,7 @@ class ConferenceApi(remote.Service):
                 raise ConflictException(
                     "You have already added this session to your wishlist")
 
-            # register user, take away one seat
+            # add session to user's wishlist
             prof.sessionKeysWishlist.append(sesh_key)
             retval = True
 
@@ -612,7 +612,7 @@ class ConferenceApi(remote.Service):
             # check if user already registered
             if sesh_key in prof.sessionKeysWishlist:
 
-                # unregister user, add back one seat
+                # remove session from user's wishlist
                 prof.sessionKeysWishlist.remove(sesh_key)
                 retval = True
             else:
@@ -620,7 +620,6 @@ class ConferenceApi(remote.Service):
 
         # write things back to the datastore & return
         prof.put()
-        conf.put()
         return BooleanMessage(data=retval)
 
 
@@ -631,10 +630,14 @@ class ConferenceApi(remote.Service):
         """Query for all the sessions in a conference that the user is interested in."""
         prof = self._getProfileFromUser() # get user Profile
         sesh_keys = [ndb.Key(urlsafe=sesh_key) for sesh_key in prof.sessionKeysWishlist]
+        if not sesh_keys:
+            raise endpoints.NotFoundException(
+                'No sessions in wishlist')
         sessions = ndb.get_multi(sesh_keys)
 
         # return set of SessionForm objects per Session
-        return SessionForms(sesh=[self._copySessionToForm(sesh) for sesh in sessions]
+        return SessionForms(
+            items=[self._copySessionToForm(sesh) for sesh in sessions]
         )
 
 
