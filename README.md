@@ -49,8 +49,13 @@ for sesh in results:
         sessions.append(sesh)
 ```
 
-####FILES:
-database_setup.py - brief description
+####IMPORTANT FILES:
+ConferenceCentral_Complete - Project Directory
+app.yaml
+index.yaml
+main.py - For Task 4
+models.py
+conference.py - I tried to make it simple to find entries
 
 ####DOWNLOAD:
 Please clone to your most convenient directory (folder) via the following
