@@ -13,7 +13,7 @@ Session, SessionForm, and SessionForms are implemented in models.py as a simple 
 For the session methods, I decided to use querystrings instead of path arguments for the parameters. I think this makes the API calls a bit more elegant, and also simplifies the path.
 
 ###Task 3: Come up with 2 additional queries
-1. It would be useful for a user attending a conference to see all the sessions they are interested in attending, sorted by start time. So essentially the user is querying Session for all sessions in a specific conferences entity group, then sorting for date and start time.
+1. A user attending a conference would probably like to see all the sessions they are interested in attending, sorted by start time. So essentially the user is querying Session for all sessions in a specific conference's entity group, then sorting for date and start time. This helps a user to plan which sessions they'll attend, especially if they're interested in two session at the same time.
 
 Code:
 ```
@@ -26,6 +26,28 @@ seshs.order(Session.date)
 seshs.order(Session.startTime)
 ``` 
 
+2. Similarly, a speaker may be interested in seeing all of the sessions they are obligated to attend. Although my code does not include speaker as a distinct entity (a good addition), this can still be simply determined by simply querying Session, filtering by speaker, and sorting by date and startTime
+
+```
+#Assuming speaker is a parameter passed to the request
+seshs = Session.query()
+seshs.filter(Session.speaker == request.speaker)
+seshs.order(Session.date)
+seshs.order(Session.startTime)
+```
+
+###Task 3: Query Related Problem
+So the problem is that an inequality filter can only be used for at most one property (you can't filter for sessions that are not workshops AND sessions before 7pm at the same time). One solution is to use a single filter (not workshops or before 7pm), then return the query results and iterate over the results for the second filter.
+
+For example:
+```
+seshs = Session.query().filter(session.startTime < "19:00")
+results = seshs.fetch()
+sessions = []
+for sesh in results:
+    if sesh.typeOfSession != "workshop":
+        sessions.append(sesh)
+```
 
 ####FILES:
 database_setup.py - brief description
