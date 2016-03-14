@@ -505,7 +505,7 @@ class ConferenceApi(remote.Service):
 
         # convert times from strings to Time objects
         if data['startTime']:
-            pass #add relevant data here
+            data['startTime'] = datetime.strptime(data['startTime'], "%H:%M").time()
 
         # generate Conference Key based on conference and Session
         # ID based on Conference key get Session key from ID
