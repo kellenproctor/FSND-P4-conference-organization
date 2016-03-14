@@ -727,6 +727,21 @@ class ConferenceApi(remote.Service):
         )
 
 
+    @endpoints.method(message_types.VoidMessage, SessionForms,
+            path='getQueryRelatedProblem',
+            http_method='GET', name='getQueryRelatedProblem')
+    def getQueryRelatedProblem(self, request):
+        """Query for non-workshop sessions before 7pm."""
+        seshs = Session.query().filter(Session.startTime < datetime.strptime("19:00", "%H:%M").time())
+        results = seshs.fetch()
+        sessions = [sesh for sesh in results if sesh.typeOfSession != "workshop"]
+
+        # return set of SessionForm objects per Session
+        return SessionForms(
+            items=[self._copySessionToForm(sesh) for sesh in sessions]
+        )
+
+
 
 
 # - - - ANNOUNCEMENTS - - - - - - - - - - - - - - - - - - - -

@@ -48,6 +48,10 @@ seshs.order(Session.startTime)
 ```
 
 ###Task 3: Query Related Problem
+UPDATE: Implemented
+Endpoint name: getQueryRelatedProblem
+Line: 730
+
 So the problem is that an inequality filter can only be used for at most one property (you can't filter for sessions that are not workshops AND sessions before 7pm at the same time). One solution is to use a single filter (not workshops or before 7pm), then return the query results and iterate over the results for the second filter.
 
 For example:
