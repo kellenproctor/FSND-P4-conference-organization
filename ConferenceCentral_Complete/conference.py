@@ -706,19 +706,21 @@ class ConferenceApi(remote.Service):
 
 
     @endpoints.method(SESH_SPEAKER_REQUEST, ConferenceForms,
-            path='getConferencesbySpeaker',
+            path='getConferencesBySpeaker',
             http_method='GET',
-            name='getConferencesbySpeaker')
-    def getConferencesbySpeaker(self, request):
+            name='getConferencesBySpeaker')
+    def getConferencesBySpeaker(self, request):
         """Given a speaker, return all conferences this speaker will be at."""
+        # find all sessions by a speaker
         seshs = Session.query()
         seshs = seshs.filter(Session.speaker==request.speaker)
 
+        # get the conference keys for those sessions and remove duplicates
         conf_keys = [sesh.key.parent() for sesh in seshs]
         conf_keys = list(set(conf_keys))
         confs = Conference.query(Conference.key.IN(conf_keys))
 
-        # return set of SessionForm objects per Session
+        # return set of ConferenceForm objects per Conference
         return ConferenceForms(
             items=[self._copyConferenceToForm(conf,\
                     getattr(conf.key.parent().get(), 'displayName')) for conf in confs]
