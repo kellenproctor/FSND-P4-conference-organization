@@ -21,6 +21,7 @@ Query 2: getConferencesBySpeaker
 Line: 708
 Description: This query returns all of the Conferences that a specific speaker will be at. If a user wants to attend the sessions of a particular speaker, they can use this query to find the conferences that speaker will be attending.
 
+
 Other thoughts (not implemented, possibly redundant)
 
 1. A user attending a conference would probably like to see all the sessions they are interested in attending, sorted by start time. So essentially the user is querying Session for all sessions in a specific conference's entity group, then sorting for date and start time. This helps a user to plan which sessions they'll attend, especially if they're interested in two session at the same time.
