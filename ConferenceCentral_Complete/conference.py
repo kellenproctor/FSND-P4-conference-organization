@@ -671,6 +671,60 @@ class ConferenceApi(remote.Service):
 
 
 
+# - - - TASK 3 QUERY ENDPOINT METHODS - - - - - - - - - - - -
+
+
+
+
+    @endpoints.method(SESH_GET_REQUEST, SessionForms,
+            path='conferenceSessionWishlist',
+            http_method='GET', name='getConferenceSessionsInWishlist')
+    def getConferenceSessionsInWishlist(self, request):
+        """Query for all the sessions in a conference that the user is interested in."""
+        prof = self._getProfileFromUser() # get user Profile
+
+        # create ancestor query for all sessions for this conference
+        conf_key = ndb.Key(urlsafe=request.websafeConferenceKey)
+        seshs = Session.query(ancestor=conf_key)
+
+        sesh_keys = [ndb.Key(urlsafe=sesh_key) for sesh_key in prof.sessionKeysWishlist]
+        if not sesh_keys:
+            raise endpoints.NotFoundException(
+                'No sessions in wishlist')
+
+        # order sessions by date and startTime, fetch results
+        seshs.order(Session.date).order(Session.startTime)
+        results = seshs.fetch()
+
+        # filter Conference session results for sessions in user's wishlist
+        sessions = [result for result in results if result.key in sesh_keys]
+
+        # return set of SessionForm objects per Session
+        return SessionForms(
+            items=[self._copySessionToForm(sesh) for sesh in sessions]
+        )
+
+
+    @endpoints.method(message_types.VoidMessage, SessionForms,
+            path='sessionWishlist',
+            http_method='GET', name='getSessionsInWishlist')
+    def getSessionsInWishlist(self, request):
+        """Query for all the sessions in a conference that the user is interested in."""
+        prof = self._getProfileFromUser() # get user Profile
+        sesh_keys = [ndb.Key(urlsafe=sesh_key) for sesh_key in prof.sessionKeysWishlist]
+        if not sesh_keys:
+            raise endpoints.NotFoundException(
+                'No sessions in wishlist')
+        sessions = ndb.get_multi(sesh_keys)
+
+        # return set of SessionForm objects per Session
+        return SessionForms(
+            items=[self._copySessionToForm(sesh) for sesh in sessions]
+        )
+
+
+
+
 # - - - ANNOUNCEMENTS - - - - - - - - - - - - - - - - - - - -
 
 
