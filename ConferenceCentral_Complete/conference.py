@@ -639,7 +639,7 @@ class ConferenceApi(remote.Service):
             path='sessionWishlist',
             http_method='GET', name='getSessionsInWishlist')
     def getSessionsInWishlist(self, request):
-        """Query for all the sessions in a conference that the user is interested in."""
+        """Query for all the sessions that the user is interested in."""
         prof = self._getProfileFromUser() # get user Profile
         sesh_keys = [ndb.Key(urlsafe=sesh_key) for sesh_key in prof.sessionKeysWishlist]
         if not sesh_keys:
@@ -702,6 +702,33 @@ class ConferenceApi(remote.Service):
         # return set of SessionForm objects per Session
         return SessionForms(
             items=[self._copySessionToForm(sesh) for sesh in sessions]
+        )
+
+
+    @endpoints.method(ConferenceForm, SessionForms,
+            path='getSessionsByLocation',
+            http_method='GET', name='getSessionsByLocation')
+    def getSessionsByLocation(self, request):
+        """Query for all the sessions in a particular location."""
+        location = request.city
+
+        # query conferences and filter by location
+        confs = Conference.query(Conference.city == location)
+        conferences = confs.fetch()
+
+        # query Sessions for conferences in those locations
+        seshs = [Session.query(ancestor=conf.key) for conf in conferences]
+        
+        # fetch resulting sessions and organize
+        sessions = [sesh.fetch() for sesh in seshs]
+        results = []
+        for sesh in sessions:
+            for result in sesh:
+                results.append(result)
+
+        # return set of SessionForm objects per Session
+        return SessionForms(
+            items=[self._copySessionToForm(sesh) for sesh in results]
         )
 
 
