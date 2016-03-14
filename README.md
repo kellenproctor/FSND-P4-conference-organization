@@ -13,6 +13,9 @@ Session, SessionForm, and SessionForms are implemented in models.py as a simple 
 For the session methods, I decided to use querystrings instead of path arguments for the parameters. I think this makes the API calls a bit more elegant, and also simplifies the path.
 
 ###Task 3: Come up with 2 additional queries
+Query 1: getConference SessionsInWishlist
+Line: 682
+
 1. A user attending a conference would probably like to see all the sessions they are interested in attending, sorted by start time. So essentially the user is querying Session for all sessions in a specific conference's entity group, then sorting for date and start time. This helps a user to plan which sessions they'll attend, especially if they're interested in two session at the same time.
 
 Code:

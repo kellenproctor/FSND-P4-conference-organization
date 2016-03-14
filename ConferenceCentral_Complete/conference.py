@@ -705,21 +705,23 @@ class ConferenceApi(remote.Service):
         )
 
 
-    @endpoints.method(message_types.VoidMessage, SessionForms,
-            path='sessionWishlist',
-            http_method='GET', name='getSessionsInWishlist')
-    def getSessionsInWishlist(self, request):
-        """Query for all the sessions in a conference that the user is interested in."""
-        prof = self._getProfileFromUser() # get user Profile
-        sesh_keys = [ndb.Key(urlsafe=sesh_key) for sesh_key in prof.sessionKeysWishlist]
-        if not sesh_keys:
-            raise endpoints.NotFoundException(
-                'No sessions in wishlist')
-        sessions = ndb.get_multi(sesh_keys)
+    @endpoints.method(SESH_SPEAKER_REQUEST, ConferenceForms,
+            path='getConferencesbySpeaker',
+            http_method='GET',
+            name='getConferencesbySpeaker')
+    def getConferencesbySpeaker(self, request):
+        """Given a speaker, return all conferences this speaker will be at."""
+        seshs = Session.query()
+        seshs = seshs.filter(Session.speaker==request.speaker)
+
+        conf_keys = [sesh.key.parent() for sesh in seshs]
+        conf_keys = list(set(conf_keys))
+        confs = Conference.query(Conference.key.IN(conf_keys))
 
         # return set of SessionForm objects per Session
-        return SessionForms(
-            items=[self._copySessionToForm(sesh) for sesh in sessions]
+        return ConferenceForms(
+            items=[self._copyConferenceToForm(conf,\
+                    getattr(conf.key.parent().get(), 'displayName')) for conf in confs]
         )
 
 
