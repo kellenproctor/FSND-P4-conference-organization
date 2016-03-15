@@ -119,6 +119,11 @@ SESH_WISHLIST_REQUEST = endpoints.ResourceContainer(
     sessionKey=messages.StringField(1),
 )
 
+SESH_LOCATION_REQUEST = endpoints.ResourceContainer(
+    message_types.VoidMessage,
+    city=messages.StringField(1),
+)
+
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -705,7 +710,7 @@ class ConferenceApi(remote.Service):
         )
 
 
-    @endpoints.method(ConferenceForm, SessionForms,
+    @endpoints.method(SESH_LOCATION_REQUEST, SessionForms,
             path='getSessionsByLocation',
             http_method='GET', name='getSessionsByLocation')
     def getSessionsByLocation(self, request):

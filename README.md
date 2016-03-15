@@ -13,13 +13,17 @@ Session, SessionForm, and SessionForms are implemented in models.py as a simple 
 For the session methods, I decided to use querystrings instead of path arguments for the parameters. I think this makes the API calls a bit more elegant, and also simplifies the path.
 
 ###Task 3: Come up with 2 additional queries
-Query 1: getConferenceSessionsInWishlist
-Line: 682
-Description: This query returns all of the sessions in the users wishlist at a specific conference, sorted by date and startTime. The goal is to allow a user to plan out what sessions they would like to attend, and check if there are any conflicts in session time.
+Query 1: getSessionsByLocation
+Line: 716
+Description: This query returns all of the sessions in a particular city that the user has queried for. Given a city, the method will query Conferences for all conferences that are in that city. It will then use the keys to those conferences to do an ancestor query for Sessions, and return all session results.
 
 Query 2: getConferencesBySpeaker
-Line: 708
+Line: 740
 Description: This query returns all of the Conferences that a specific speaker will be at. If a user wants to attend the sessions of a particular speaker, they can use this query to find the conferences that speaker will be attending.
+
+Query 1: getConferenceSessionsInWishlist
+Line: 684
+Description: This query returns all of the sessions in the users wishlist at a specific conference, sorted by date and startTime. The goal is to allow a user to plan out what sessions they would like to attend, and check if there are any conflicts in session time. I understand that this may seem similar to getSessionsInWishlist, but the difference is that this one only returns session in a user's wishlist, at a particular conference, and not for all sessions in all conferences. I also understand, that despite that qualification, it is still pretty damn similar to getSessionsInWishlist, so, with Kirk's advice, I added getSessionsByLocation above. Thanks Kirk!!
 
 
 Other thoughts (not implemented, possibly redundant)
